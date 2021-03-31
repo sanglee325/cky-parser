@@ -28,4 +28,4 @@ v -> flies
 p -> like
 v -> like
 det -> an
-n-> arrow
+n -> arrow
