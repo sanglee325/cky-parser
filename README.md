@@ -7,7 +7,7 @@ CKY parser를 이용한 문장을 parsing하는 프로그램입니다.
 ## Environment
 
 * Ubuntu 18.04.4 LTS
-* python==3.7.7
+* python==3.7.9
 
 ## requirements
 
