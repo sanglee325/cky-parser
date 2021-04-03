@@ -74,7 +74,6 @@ class production:
             if self.pos2 == None:
                 tmp = self.g_data.getRule(self.pos1)
             elif self.pos1 != None and self.pos2 != None:
-                #print(self.pos1, self.pos2)
                 tmp = self.g_data.getRule(self.pos1+" "+self.pos2)
             
             if tmp == None:
@@ -82,7 +81,6 @@ class production:
             else:
                 self.result = tmp[0]
             
-        #print('production: ', self.result)
         return self.result
     
     def convert_word(self):

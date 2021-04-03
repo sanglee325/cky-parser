@@ -92,13 +92,10 @@ def printUsedG(root, prev=None):
 def printSent(root, prev=None):
     if root is None:
         return
-    #print('[', end='')
     if root.get_left() is None and root.get_right() is None:
         print(root.get_pos1(), end=' ')
-        #print(prev.get_pos1(), end=' ')
     printSent(root.get_left(), root)
     printSent(root.get_right(), root)
-    #print(']', end='')
 
 
 if __name__=='__main__':
@@ -123,7 +120,6 @@ if __name__=='__main__':
     for idx, (parse) in enumerate(target):
         print("Input:", parse)
         split_sent = parse.split(' ')
-        #print(split_sent)
         n = len(split_sent)
         pidx = 0
 
@@ -138,7 +134,6 @@ if __name__=='__main__':
                 convert = production(G, start=i+1, end=i+2, idx=pidx ,pos1=pos, p1=p)
                 pidx += 1
                 convert.get_result()
-                #convert = production(G, pos1=pos, pos2=None).get_result()
                 if convert.get_value() != None:
                     cky_table[i][i+1].add_prod(convert)
         
@@ -155,18 +150,14 @@ if __name__=='__main__':
                         if t1.productions != None and t2.productions != None:
                             for a in t1.productions:
                                 for b in t2.productions:
-                                    #print(a.get_value(), b.get_value())
                                     pos1_s, pos1_e = a.get_range()
                                     pos2_s, pos2_e = b.get_range()
                                     if pos1_e == pos2_s:
                                         p = production(idx=pidx, start=pos1_s, end=pos2_e, pos1=a.get_value(), pos2=b.get_value(), g_data=G, p1=a, p2=b)
                                         p.get_result()
-                                        #p = production(pos1=a, pos2=b, g_data=G).get_result()
                                         if p.get_value() != None:
-                                            #print(a.get_value(), b.get_value())
                                             cky_table[r][c].add_prod(p)
                                             pidx += 1
-                                            #print(split_sent[r:c], p.get_value())
                             
         
         #printCKYtable(cky_table)
