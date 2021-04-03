@@ -51,13 +51,15 @@ class sentence:
         return None
 
 class production:
-    def __init__(self, g_data, pos1=None, pos2=None, p1=None, p2=None):
+    def __init__(self, g_data, start, end, pos1=None, pos2=None, p1=None, p2=None):
         self.result = []
         self.pos1 = pos1
         self.pos2 = pos2
         self.p1 = p1
         self.p2 = p2
         self.node_stack = []
+        self.start = start
+        self.end = end
         self.g_data = g_data
 
     def get_result(self):
@@ -83,27 +85,29 @@ class production:
         return self.result
     
     def convert_word(self):
+        if self.check_overlap() is False:
+            self.result = None
+            return
         if self.pos2 == None:
            self.result = self.g_data.getRule(self.pos1)
         return self.result
     
     def check_overlap(self):
-        if self.p1 is not None and len(self.p1.get_stack()) == 0:
-            self.node_stack.append(self.p1)
-        if self.p2 is not None and len(self.p2.get_stack()) == 0:
-            self.node_stack.append(self.p2)
-        
-        for i in self.p1.get_stack():
-            if i in self.p2.get_stack():
-                return False
-        
-        if self.p1 is not None:
+        if self.p1 is None and self.p2 is None:
+            self.node_stack.append(self)
+        elif self.p1 is not None and self.p2 is None:
             self.node_stack += self.p1.get_stack()
-        if self.p2 is not None:
-            self.node_stack += self.p2.get_stack()
+        elif self.p1 is not None and self.p2 is not None:
+            for i in self.p1.get_stack():
+                for j in self.p2.get_stack():
+                    if i == j:
+                        return False
+            self.node_stack = self.p1.get_stack() + self.p2.get_stack()
 
         return True
 
+    def get_range(self):
+        return self.start, self.end
 
     def get_value(self):
         return self.result
@@ -116,6 +120,9 @@ class production:
 
     def get_pos1(self):
         return self.pos1
+
+    def get_pos2(self):
+        return self.pos2
     
     def get_stack(self):
         return self.node_stack
@@ -126,10 +133,9 @@ class cell:
         self.element = 0
     
     def add_prod(self, production):
-        if production != None:
-            if self.productions == None:
-                self.productions = []
-            self.productions.append(production)
+        if self.productions == None:
+            self.productions = []
+        self.productions.append(production)
 
     
     def print_cell(self):
