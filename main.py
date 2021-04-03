@@ -8,7 +8,7 @@ def printCKYtable(table):
             j.print_cell()
         print()
 
-def printCKYtree(f, root, prev=None):
+def saveCKYtree(f, root, prev=None):
     if root is None:
         return
     print('(', end='')
@@ -24,10 +24,70 @@ def printCKYtree(f, root, prev=None):
         print(root.get_value(), end=' ')
         tmpstr = root.get_value()+ ' '
         f.write(tmpstr)
-    printCKYtree(f, root.get_left(), root)
-    printCKYtree(f, root.get_right(), root)
+    saveCKYtree(f, root.get_left(), root)
+    saveCKYtree(f, root.get_right(), root)
     print(')', end='')
     f.write(')')
+
+def saveUsedG(f, root, prev=None):
+    if root is None:
+        return
+    if root.get_left() is None and root.get_right() is None:
+        tmpstr = str(root.get_idx()) + ' '
+        f.write(tmpstr)
+        f.write('(')
+        tmpstr = prev.get_pos1() + ' '
+        f.write(tmpstr)
+        tmpstr = root.get_pos1() + ''
+        f.write(tmpstr)
+        f.write(')\n')
+    else:
+        tmpstr = str(root.get_idx()) + ' '
+        f.write(tmpstr)
+        f.write('(')
+        tmpstr = root.get_value() + ' '
+        f.write(tmpstr)
+
+        f.write('(')
+        if root.get_right() is None:
+            tmpstr = str(root.get_left().get_idx())
+            f.write(tmpstr)
+        else:
+            tmpstr = str(root.get_left().get_idx()) + ', '
+            f.write(tmpstr)
+            tmpstr = str(root.get_right().get_idx())
+            f.write(tmpstr)
+        f.write(')')
+        
+        f.write(')\n')
+    saveUsedG(f, root.get_left(), root)
+    saveUsedG(f, root.get_right(), root)
+
+def printUsedG(root, prev=None):
+    if root is None:
+        return
+    if root.get_left() is None and root.get_right() is None:
+        print(root.get_idx(), end=' ')
+        print('(', end='')
+        print(prev.get_pos1(), end=' ')
+        print(root.get_pos1(), end='')
+        print(')')
+    else:
+        print(root.get_idx(), end=' ')
+        print('(', end='')
+        print(root.get_value(), end=' ')
+
+        print('(', end='')
+        if root.get_right() is None:
+            print(root.get_left().get_idx(), end='')
+        else:
+            print(root.get_left().get_idx(), end=', ')
+            print(root.get_right().get_idx(), end='')
+        print(')', end='')
+        
+        print(')')
+    printUsedG(root.get_left(), root)
+    printUsedG(root.get_right(), root)
 
 def printSent(root, prev=None):
     if root is None:
@@ -55,20 +115,28 @@ if __name__=='__main__':
     f = open("./used_grammar.txt", 'w')
     f.close()
 
-    for idx, (parse) in enumerate(S.content):
+    if S.content.size == 1:
+        target = []
+        target.append(S.content.tolist())
+    else: 
+        target = S.content
+    for idx, (parse) in enumerate(target):
         print("Input:", parse)
         split_sent = parse.split(' ')
         #print(split_sent)
         n = len(split_sent)
+        pidx = 0
 
         cky_table = [[cell() for i in range(n+1)] for j in range(n)]
 
         # fill in diagonal table
         for i in range(n):
-            p = production(G, start=i+1, end=i+2, pos1=split_sent[i], pos2=None)
+            p = production(G, start=i+1, end=i+2, idx=pidx, pos1=split_sent[i], pos2=None)
+            pidx += 1
             p.convert_word()            
             for pos in p.get_value():
-                convert = production(G, start=i+1, end=i+2, pos1=pos, p1=p)
+                convert = production(G, start=i+1, end=i+2, idx=pidx ,pos1=pos, p1=p)
+                pidx += 1
                 convert.get_result()
                 #convert = production(G, pos1=pos, pos2=None).get_result()
                 if convert.get_value() != None:
@@ -91,12 +159,13 @@ if __name__=='__main__':
                                     pos1_s, pos1_e = a.get_range()
                                     pos2_s, pos2_e = b.get_range()
                                     if pos1_e == pos2_s:
-                                        p = production(start=pos1_s, end=pos2_e, pos1=a.get_value(), pos2=b.get_value(), g_data=G, p1=a, p2=b)
+                                        p = production(idx=pidx, start=pos1_s, end=pos2_e, pos1=a.get_value(), pos2=b.get_value(), g_data=G, p1=a, p2=b)
                                         p.get_result()
                                         #p = production(pos1=a, pos2=b, g_data=G).get_result()
                                         if p.get_value() != None:
                                             #print(a.get_value(), b.get_value())
                                             cky_table[r][c].add_prod(p)
+                                            pidx += 1
                                             #print(split_sent[r:c], p.get_value())
                             
         
@@ -108,13 +177,28 @@ if __name__=='__main__':
                     for p in c.get_prod():
                         if p.get_value() == 'S':
                             f = open("./output.txt", 'a')
-                            #printSent(p)
-                            printCKYtree(f, p)
+                            saveCKYtree(f, p)
                             print()
                             f.write('\n')
                             f.close()
         f = open("./output.txt", 'a')
-        print()
         f.write('\n')
         f.close()
+        print()
+
+        f = open("./used_grammar.txt", 'a')
+        tmpstr = '%s\n'%(parse)
+        f.write(tmpstr)
+        f.close()
+
+        for r in cky_table:
+            for c in r:
+                if c.get_prod() != None:
+                    for p in c.get_prod():
+                        if p.get_value() == 'S':
+                            f = open("./used_grammar.txt", 'a')
+                            saveUsedG(f, p)
+                            #printUsedG(p)
+                            f.write('\n')
+                            f.close()
 

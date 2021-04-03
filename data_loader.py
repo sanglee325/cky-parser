@@ -51,7 +51,7 @@ class sentence:
         return None
 
 class production:
-    def __init__(self, g_data, start, end, pos1=None, pos2=None, p1=None, p2=None):
+    def __init__(self, g_data, start, end, idx=None, pos1=None, pos2=None, p1=None, p2=None):
         self.result = []
         self.pos1 = pos1
         self.pos2 = pos2
@@ -60,6 +60,7 @@ class production:
         self.node_stack = []
         self.start = start
         self.end = end
+        self.idx = idx
         self.g_data = g_data
 
     def get_result(self):
@@ -108,6 +109,9 @@ class production:
 
     def get_range(self):
         return self.start, self.end
+
+    def get_idx(self):
+        return self.idx
 
     def get_value(self):
         return self.result
